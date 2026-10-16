@@ -249,3 +249,34 @@ describe('Edge cases', () => {
     expect(result.payout.amount.toFixed(2)).toBe('99.99');
   });
 });
+
+// ─── 7. Helper getters & Model serialization ──────────────────────────────────
+describe('Helper getters and Model serialization', () => {
+  test('memberCount and totalPot return expected values', () => {
+    const g = makeGroup(); // 3 members @ 50
+    expect(g.memberCount).toBe(3);
+    expect(g.totalPot.toFixed(2)).toBe('150.00');
+    expect(g.isRotationComplete).toBe(false);
+  });
+
+  test('getMember returns member by name or undefined if not found', () => {
+    const g = makeGroup();
+    expect(g.getMember('Ama')).toBeDefined();
+    expect(g.getMember('Ama').name).toBe('Ama');
+    expect(g.getMember('NonExistent')).toBeUndefined();
+  });
+
+  test('models serialize cleanly via toJSON', () => {
+    const g = makeGroup();
+    const member = g.getMember('Ama');
+    expect(member.toJSON()).toEqual({ name: 'Ama', joinOrder: 1 });
+
+    const contribution = g.recordContribution('Ama', 1, '25');
+    expect(contribution.toJSON()).toEqual({
+      memberName: 'Ama',
+      week: 1,
+      totalPaid: '25.00',
+      payments: ['25.00'],
+    });
+  });
+});
