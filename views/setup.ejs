@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setup – Susu Manager</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🪙</span>
+        <span class="logo-text">Susu Manager</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Welcome to Susu Manager</h1>
+      <p class="hero-sub">Create your rotating savings group and start collecting contributions in minutes.</p>
+    </section>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><strong>Error:</strong> <%= error %></div>
+    <% } %>
+
+    <div class="card setup-card">
+      <h2>Create a New Susu Group</h2>
+      <form action="/setup" method="POST" class="form-stack">
+        <div class="form-group">
+          <label for="groupName">Group Name</label>
+          <input
+            type="text"
+            id="groupName"
+            name="groupName"
+            placeholder="e.g. Friday Savers"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="weeklyAmount">Weekly Contribution (GHS)</label>
+          <input
+            type="number"
+            id="weeklyAmount"
+            name="weeklyAmount"
+            placeholder="e.g. 50.00"
+            step="0.01"
+            min="0.01"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Create Group</button>
+      </form>
+    </div>
+
+    <div class="how-it-works card">
+      <h2>How a Susu Works</h2>
+      <ol>
+        <li>Every member contributes the same fixed amount each week.</li>
+        <li>The whole pot is paid out to one member per week.</li>
+        <li>Members receive the pot in the order they joined.</li>
+        <li>The cycle repeats until every member has received the pot.</li>
+      </ol>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Susu Manager &copy; <%= new Date().getFullYear() %></p>
+  </footer>
+  <script src="/js/main.js"></script>
+</body>
+</html>

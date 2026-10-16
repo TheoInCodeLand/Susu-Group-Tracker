@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= report.groupName %> – Susu Manager</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🪙</span>
+        <span class="logo-text">Susu Manager</span>
+      </div>
+      <nav>
+        <a href="/report" target="_blank">JSON Report</a>
+        <form action="/reset" method="POST" style="display:inline">
+          <button type="submit" class="btn btn-ghost btn-sm">Reset Group</button>
+        </form>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <%# ── Alert banners ───────────────────────────────────────────────── %>
+    <% if (error) { %>
+      <div class="alert alert-error" role="alert">
+        <span class="alert-icon">⚠</span> <%= error %>
+      </div>
+    <% } %>
+    <% if (success) { %>
+      <div class="alert alert-success" role="alert">
+        <span class="alert-icon">✓</span> <%= success %>
+      </div>
+    <% } %>
+
+    <%# ── Group summary banner ────────────────────────────────────────── %>
+    <section class="group-banner card">
+      <div class="banner-stat">
+        <span class="stat-label">Group</span>
+        <span class="stat-value"><%= report.groupName %></span>
+      </div>
+      <div class="banner-stat">
+        <span class="stat-label">Current Week</span>
+        <span class="stat-value badge"># <%= report.currentWeek %></span>
+      </div>
+      <div class="banner-stat">
+        <span class="stat-label">Weekly Amount</span>
+        <span class="stat-value">GHS <%= report.weeklyAmount %></span>
+      </div>
+      <div class="banner-stat">
+        <span class="stat-label">Members</span>
+        <span class="stat-value"><%= report.memberCount %></span>
+      </div>
+      <div class="banner-stat">
+        <span class="stat-label">Pot This Week</span>
+        <% const pot = (parseFloat(report.weeklyAmount) * report.memberCount).toFixed(2); %>
+        <span class="stat-value highlight">GHS <%= pot %></span>
+      </div>
+    </section>
+
+    <div class="two-col">
+
+      <%# ── Left column: actions ──────────────────────────────────────── %>
+      <div class="col-actions">
+
+        <%# Add member %>
+        <div class="card">
+          <h2>Add Member</h2>
+          <form action="/members" method="POST" class="form-stack">
+            <div class="form-group">
+              <label for="memberName">Member Name</label>
+              <input type="text" id="memberName" name="memberName"
+                     placeholder="e.g. Ama" required />
+            </div>
+            <button type="submit" class="btn btn-secondary">Add Member</button>
+          </form>
+        </div>
+
+        <%# Record contribution %>
+        <div class="card">
+          <h2>Record Contribution</h2>
+          <form action="/contribute" method="POST" class="form-stack">
+            <div class="form-group">
+              <label for="contrib-member">Member</label>
+              <select id="contrib-member" name="memberName" required>
+                <option value="">— select member —</option>
+                <% group.members.forEach(m => { %>
+                  <option value="<%= m.name %>"><%= m.name %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="contrib-week">Week</label>
+              <input type="number" id="contrib-week" name="week"
+                     value="<%= report.currentWeek %>" min="1" required />
+            </div>
+            <div class="form-group">
+              <label for="contrib-amount">Amount (GHS)</label>
+              <input type="number" id="contrib-amount" name="amount"
+                     placeholder="e.g. 25.00" step="0.01" min="0.01" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Record Payment</button>
+          </form>
+        </div>
+
+        <%# Close week %>
+        <div class="card">
+          <h2>Close Week <%= report.currentWeek %></h2>
+          <p class="text-muted">
+            Checks that every member has paid in full. If so, the pot is
+            disbursed to the next member in rotation.
+          </p>
+          <form action="/close-week" method="POST">
+            <button type="submit" class="btn btn-accent">Close Week</button>
+          </form>
+        </div>
+
+      </div><!-- /.col-actions -->
+
+      <%# ── Right column: status + history ───────────────────────────── %>
+      <div class="col-status">
+
+        <%# Week status %>
+        <div class="card">
+          <h2>Week <%= report.currentWeek %> Status</h2>
+
+          <% if (report.paidInFull.length > 0) { %>
+            <h3 class="status-heading paid">✓ Paid in Full</h3>
+            <ul class="member-list">
+              <% report.paidInFull.forEach(name => { %>
+                <li class="member-item paid"><span class="checkmark">✓</span> <%= name %></li>
+              <% }) %>
+            </ul>
+          <% } %>
+
+          <% if (report.outstanding.length > 0) { %>
+            <h3 class="status-heading owed">⚠ Outstanding</h3>
+            <ul class="member-list">
+              <% report.outstanding.forEach(o => { %>
+                <li class="member-item owed">
+                  <span class="member-name"><%= o.member %></span>
+                  <span class="owed-amount">
+                    Paid GHS <%= o.paid %> &mdash; owes <strong>GHS <%= o.owes %></strong>
+                  </span>
+                </li>
+              <% }) %>
+            </ul>
+          <% } %>
+
+          <% if (report.paidInFull.length === 0 && report.outstanding.length === 0) { %>
+            <p class="text-muted">No contributions recorded yet for this week.</p>
+          <% } %>
+        </div>
+
+        <%# Payout history %>
+        <div class="card">
+          <h2>Payout History</h2>
+          <% if (report.payoutHistory.length === 0) { %>
+            <p class="text-muted">No payouts yet.</p>
+          <% } else { %>
+            <table class="payout-table">
+              <thead>
+                <tr>
+                  <th>Week</th>
+                  <th>Recipient</th>
+                  <th>Amount (GHS)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% report.payoutHistory.forEach(p => { %>
+                  <tr>
+                    <td><span class="badge"># <%= p.week %></span></td>
+                    <td><%= p.recipient %></td>
+                    <td class="amount"><%= p.amount %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        </div>
+
+        <%# Rotation order %>
+        <div class="card">
+          <h2>Rotation Order</h2>
+          <ol class="rotation-list">
+            <% group.members.forEach((m, i) => {
+                 const weekNum = i + 1;
+                 const isPast = weekNum < report.currentWeek;
+                 const isCurrent = weekNum === report.currentWeek;
+            %>
+              <li class="rotation-item <%= isPast ? 'past' : isCurrent ? 'current' : '' %>">
+                <span class="week-chip">Wk <%= weekNum %></span>
+                <span class="rot-name"><%= m.name %></span>
+                <% if (isPast) { %><span class="tag tag-done">received</span><% } %>
+                <% if (isCurrent) { %><span class="tag tag-next">next →</span><% } %>
+              </li>
+            <% }) %>
+          </ol>
+        </div>
+
+      </div><!-- /.col-status -->
+
+    </div><!-- /.two-col -->
+
+  </main>
+
+  <footer class="site-footer">
+    <p>Susu Manager &copy; <%= new Date().getFullYear() %> &mdash; rotating savings made simple.</p>
+  </footer>
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Error – Susu Manager</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🪙</span>
+        <span class="logo-text">Susu Manager</span>
+      </div>
+      <nav><a href="/">← Back to Home</a></nav>
+    </div>
+  </header>
+  <main class="container">
+    <div class="card error-page">
+      <h1>Something went wrong</h1>
+      <p class="error-message"><%= error %></p>
+      <a href="/" class="btn btn-primary">Go Home</a>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <p>Susu Manager &copy; <%= new Date().getFullYear() %></p>
+  </footer>
+</body>
+</html>

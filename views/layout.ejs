@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? title : 'Susu Manager' %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🪙</span>
+        <span class="logo-text">Susu Manager</span>
+      </div>
+      <nav>
+        <a href="/">Dashboard</a>
+        <% if (group) { %>
+          <a href="/report" target="_blank">JSON Report</a>
+          <form action="/reset" method="POST" style="display:inline">
+            <button type="submit" class="btn btn-ghost btn-sm">Reset Group</button>
+          </form>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <%- body %>
+  </main>
+
+  <footer class="site-footer">
+    <p>Susu Manager &copy; <%= new Date().getFullYear() %> &mdash; rotating savings made simple.</p>
+  </footer>
+  <script src="/js/main.js"></script>
+</body>
+</html>
