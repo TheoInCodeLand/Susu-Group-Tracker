@@ -31,11 +31,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Prevent double-submit on all forms ───────────────────────────────────
   document.querySelectorAll('form').forEach((form) => {
     form.addEventListener('submit', function handleSubmit() {
+      // Only disable button if HTML5 validation passes
+      if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+        return;
+      }
       const btn = form.querySelector('button[type="submit"]');
       if (btn) {
         btn.disabled = true;
         btn.textContent = btn.textContent + '…';
       }
+    });
+  });
+
+  // ── Re-enable submit buttons on page restore (e.g. back/forward cache) ───
+  window.addEventListener('pageshow', () => {
+    document.querySelectorAll('button[type="submit"]').forEach((btn) => {
+      btn.disabled = false;
+      btn.textContent = btn.textContent.replace(/…$/, '');
     });
   });
 
