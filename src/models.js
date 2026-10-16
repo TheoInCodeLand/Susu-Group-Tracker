@@ -8,8 +8,15 @@ const Decimal = require('decimal.js');
  */
 class Member {
   constructor(name, joinOrder) {
-    this.name = name;
-    this.joinOrder = joinOrder; // 1-based; also determines payout order
+    this.name = typeof name === 'string' ? name.trim() : name;
+    this.joinOrder = Number(joinOrder); // 1-based; also determines payout order
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      joinOrder: this.joinOrder,
+    };
   }
 }
 
@@ -24,7 +31,7 @@ class Member {
 class Contribution {
   constructor(memberName, week) {
     this.memberName = memberName;
-    this.week = week;
+    this.week = Number(week);
     this.payments = []; // array of Decimal
   }
 
@@ -36,6 +43,15 @@ class Contribution {
   /** Append a single payment instalment. */
   addPayment(amount) {
     this.payments.push(new Decimal(amount));
+  }
+
+  toJSON() {
+    return {
+      memberName: this.memberName,
+      week: this.week,
+      totalPaid: this.totalPaid.toFixed(2),
+      payments: this.payments.map((p) => p.toFixed(2)),
+    };
   }
 }
 
@@ -49,10 +65,18 @@ class Contribution {
  */
 class PayoutRecord {
   constructor(week, recipient, amount) {
-    this.week = week;
+    this.week = Number(week);
     this.recipient = recipient;
     this.amount = new Decimal(amount);
     Object.freeze(this); // immutable once created
+  }
+
+  toJSON() {
+    return {
+      week: this.week,
+      recipient: this.recipient,
+      amount: this.amount.toFixed(2),
+    };
   }
 
   toString() {

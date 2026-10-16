@@ -4,9 +4,13 @@
  * by checking `err instanceof SusuError`.
  */
 class SusuError extends Error {
-  constructor(message) {
+  constructor(message, statusCode = 400) {
     super(message);
     this.name = this.constructor.name;
+    this.statusCode = statusCode;
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
   }
 }
 
