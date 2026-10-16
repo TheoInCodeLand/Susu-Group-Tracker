@@ -1,0 +1,25 @@
+{
+  "name": "susu-manager",
+  "version": "1.0.0",
+  "description": "Rotating savings group (susu) manager – Node/Express/EJS",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest --runInBand --forceExit"
+  },
+  "dependencies": {
+    "decimal.js": "^10.4.3",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.4",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/tests/**/*.test.js"]
+  }
+}
