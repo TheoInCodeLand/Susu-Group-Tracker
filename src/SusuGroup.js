@@ -48,7 +48,7 @@ class SusuGroup {
       );
     }
 
-    this.groupName = groupName;
+    this.groupName = typeof groupName === 'string' ? groupName.trim() : groupName;
     this.weeklyAmount = amt; // Decimal – never a float
 
     /** @type {Member[]} Ordered by join_order (index 0 = first to join). */
@@ -77,6 +77,33 @@ class SusuGroup {
      * Used to enforce the late-join rule.
      */
     this._contributionsStarted = false;
+  }
+
+  // ─── Getters & Lookup ────────────────────────
+
+  /** Number of registered members in the group. */
+  get memberCount() {
+    return this.members.length;
+  }
+
+  /** Expected total weekly pot amount (weeklyAmount * memberCount). */
+  get totalPot() {
+    return this.weeklyAmount.times(this.members.length);
+  }
+
+  /** Whether every member has received their scheduled payout at least once. */
+  get isRotationComplete() {
+    return this.members.length >= 2 && this.currentWeek > this.members.length;
+  }
+
+  /**
+   * Find a member by name.
+   * @param {string} name
+   * @returns {Member|undefined}
+   */
+  getMember(name) {
+    if (!name || typeof name !== 'string') return undefined;
+    return this._memberMap.get(name.trim());
   }
 
   // ─────────────────────────────────────────────
@@ -238,7 +265,7 @@ class SusuGroup {
     }
 
     // ── all paid – disburse the pot ───────────────
-    const potAmount = this.weeklyAmount.times(this.members.length);
+    const potAmount = this.totalPot;
 
     // Recipient = member whose joinOrder equals the current week number.
     // Once all members have received the pot the rotation is complete.
@@ -296,7 +323,7 @@ class SusuGroup {
       groupName: this.groupName,
       weeklyAmount: this.weeklyAmount.toFixed(2),
       currentWeek: week,
-      memberCount: this.members.length,
+      memberCount: this.memberCount,
       paidInFull,
       outstanding,
       payoutHistory: this.payoutHistory.map((r) => ({
