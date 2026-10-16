@@ -8,7 +8,7 @@
 const express = require('express');
 const router = express.Router();
 const SusuGroup = require('../SusuGroup');
-const { SusuError } = require('../errors');
+const { SusuError, InvalidAmountError } = require('../errors');
 
 // ─── In-memory store (one group per server instance) ─────────────────────────
 // In a real production app this would be replaced with a database.
@@ -34,7 +34,7 @@ function susuRoute(view, handler) {
       await handler(req, res);
     } catch (err) {
       if (err instanceof SusuError) {
-        render(res, view, { error: err.message }, 400);
+        render(res, view, { error: err.message }, err.statusCode || 400);
       } else {
         console.error(err);
         render(res, 'error', { error: 'An unexpected error occurred.' }, 500);
@@ -59,10 +59,11 @@ router.post(
   '/setup',
   susuRoute('setup', (req, res) => {
     const { groupName, weeklyAmount } = req.body;
-    if (!groupName || !weeklyAmount) {
-      throw Object.assign(new Error('Group name and weekly amount are required.'), {
-        name: 'SusuError',
-      });
+    if (!groupName || typeof groupName !== 'string' || !groupName.trim()) {
+      throw new InvalidAmountError('Group name is required.');
+    }
+    if (!weeklyAmount) {
+      throw new InvalidAmountError('Weekly amount is required.');
     }
     store.group = new SusuGroup(groupName.trim(), weeklyAmount);
     const report = store.group.getReport();
@@ -78,12 +79,12 @@ router.post(
   '/members',
   susuRoute('dashboard', (req, res) => {
     if (!store.group) return res.redirect('/');
-    const { memberName } = req.body;
+    const memberName = req.body.memberName ? req.body.memberName.trim() : '';
     store.group.addMember(memberName);
     const report = store.group.getReport();
     render(res, 'dashboard', {
       report,
-      success: `Member "${memberName.trim()}" added to the group.`,
+      success: `Member "${memberName}" added to the group.`,
     });
   })
 );
@@ -94,11 +95,12 @@ router.post(
   susuRoute('dashboard', (req, res) => {
     if (!store.group) return res.redirect('/');
     const { memberName, week, amount } = req.body;
-    store.group.recordContribution(memberName, Number(week), amount);
+    const cleanMember = typeof memberName === 'string' ? memberName.trim() : memberName;
+    store.group.recordContribution(cleanMember, Number(week), amount);
     const report = store.group.getReport();
     render(res, 'dashboard', {
       report,
-      success: `GHS ${Number(amount).toFixed(2)} recorded for ${memberName} (Week ${week}).`,
+      success: `GHS ${Number(amount).toFixed(2)} recorded for ${cleanMember} (Week ${week}).`,
     });
   })
 );
